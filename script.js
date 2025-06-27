@@ -24,10 +24,15 @@ const playerInitialState = {
     color: '#00ff00',
     speed: 5,
     lastShot: 0,
-    initialShootCooldown: 300,
-    shootCooldown: 300,
-    initialHealth: 3,
-    health: 3
+    shootCooldown: {
+        initial: 300,
+        current: 300,
+        minimum: 50
+    },
+    health: {
+        initial: 3,
+        current: 3
+    }
 };
 
 // --- Initialization ---
@@ -42,7 +47,7 @@ function startGame() {
 }
 
 function initGame() {
-    player = { ...playerInitialState, shootCooldown: playerInitialState.initialShootCooldown, health: playerInitialState.initialHealth };
+    player = { ...playerInitialState, shootCooldown: playerInitialState.shootCooldown.initial, health: playerInitialState.health.initial };
     bullets = [];
     enemies = [];
     enemyBullets = [];
@@ -89,7 +94,7 @@ function drawUI() {
     ctx.textAlign = 'left';
     ctx.fillText(`Score: ${score}`, 20, 40);
     ctx.fillText(`Level: ${level}`, 20, 70);
-    ctx.fillText(`Health: ${player.health}`, canvas.width - 150, 40);
+    ctx.fillText(`Health: ${player.health.current}`, canvas.width - 150, 40);
 }
 
 // --- Game Logic ---
@@ -103,7 +108,7 @@ function movePlayer() {
 
 function shoot() {
     const now = Date.now();
-    if (now - player.lastShot > player.shootCooldown) {
+    if (now - player.lastShot > player.shootCooldown.current) {
         player.lastShot = now;
         bullets.push({ x: player.x + player.width / 2 - 2.5, y: player.y, width: 5, height: 10 });
     }
@@ -167,10 +172,14 @@ function updateEnemyBullets() {
 }
 
 function checkCollisions() {
+    // Early return if no objects to check
+    if (bullets.length === 0 && enemies.length === 0 && enemyBullets.length === 0) return;
+
     // Player bullets vs Enemies
     for (let i = bullets.length - 1; i >= 0; i--) {
+        if (!bullets[i]) continue; // Safety check
         for (let j = enemies.length - 1; j >= 0; j--) {
-            if (bullets[i] && enemies[j] && isColliding(bullets[i], enemies[j])) {
+            if (enemies[j] && isColliding(bullets[i], enemies[j])) {
                 enemies.splice(j, 1);
                 bullets.splice(i, 1);
                 score += 10;
@@ -184,19 +193,19 @@ function checkCollisions() {
     for (let i = enemies.length - 1; i >= 0; i--) {
         if (isColliding(player, enemies[i])) {
             enemies.splice(i, 1);
-            player.health--;
+            player.health.current--;
             break;
         }
     }
     for (let i = enemyBullets.length - 1; i >= 0; i--) {
         if (isColliding(player, enemyBullets[i])) {
             enemyBullets.splice(i, 1);
-            player.health--;
+            player.health.current--;
             break;
         }
     }
 
-    if (player.health <= 0) {
+    if (player.health.current <= 0) {
         gameOver = true;
     }
 }
@@ -205,7 +214,7 @@ function checkLevelUp() {
     if (score >= nextLevelScore) {
         level++;
         nextLevelScore *= 2; // Next level requires double the score
-        player.shootCooldown = Math.max(50, player.shootCooldown - 50); // Increase fire rate
+        player.shootCooldown.current = Math.max(player.shootCooldown.minimum, player.shootCooldown.current - 50); // Increase fire rate
     }
 }
 
