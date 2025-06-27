@@ -1,10 +1,13 @@
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
+const resetButton = document.getElementById('resetButton');
 
-// Player
-const player = {
-    x: canvas.width / 2,
-    y: canvas.height - 50,
+// Game state variables
+let player, bullets, enemies, enemyBullets, score, gameOver, lastEnemySpawn;
+
+const playerInitialState = {
+    x: canvas.width / 2 - 25,
+    y: canvas.height - 60,
     width: 50,
     height: 50,
     color: '#00ff00',
@@ -13,19 +16,22 @@ const player = {
     shootCooldown: 250 // 250ms
 };
 
-const bullets = [];
 const bulletSpeed = 7;
-
-const enemies = [];
 const enemySpeed = 2;
-let lastEnemySpawn = 0;
 const enemySpawnInterval = 1000; // 1000ms
-
-const enemyBullets = [];
 const enemyBulletSpeed = 4;
 
-let score = 0;
-let gameOver = false;
+function resetGame() {
+    player = { ...playerInitialState };
+    bullets = [];
+    enemies = [];
+    enemyBullets = [];
+    score = 0;
+    gameOver = false;
+    lastEnemySpawn = 0;
+    resetButton.style.display = 'none';
+    gameLoop();
+}
 
 function drawPlayer() {
     ctx.fillStyle = player.color;
@@ -70,6 +76,7 @@ const keys = {};
 
 document.addEventListener('keydown', (e) => keys[e.code] = true);
 document.addEventListener('keyup', (e) => keys[e.code] = false);
+resetButton.addEventListener('click', resetGame);
 
 function movePlayer() {
     if (keys['ArrowLeft'] && player.x > 0) {
@@ -134,7 +141,6 @@ function updateEnemies() {
         const enemy = enemies[i];
         enemy.y += enemySpeed;
 
-        // Enemy shoots
         if (now - enemy.lastShot > enemy.shootInterval && enemy.y > 0) {
             enemy.lastShot = now;
             const angle = Math.atan2(player.y - enemy.y, player.x - enemy.x);
@@ -167,19 +173,17 @@ function updateEnemyBullets() {
 }
 
 function checkCollisions() {
-    // Bullet-Enemy collision
     for (let i = bullets.length - 1; i >= 0; i--) {
         for (let j = enemies.length - 1; j >= 0; j--) {
             if (bullets[i] && enemies[j] && isColliding(bullets[i], enemies[j])) {
                 bullets.splice(i, 1);
                 enemies.splice(j, 1);
                 score += 10;
-                break; // Move to next bullet
+                break;
             }
         }
     }
 
-    // Player-Enemy collision
     for (const enemy of enemies) {
         if (isColliding(player, enemy)) {
             gameOver = true;
@@ -187,7 +191,6 @@ function checkCollisions() {
         }
     }
 
-    // Player-Enemy Bullet collision
     for (const bullet of enemyBullets) {
         if (isColliding(player, bullet)) {
             gameOver = true;
@@ -204,7 +207,8 @@ function gameLoop() {
         ctx.fillText('GAME OVER', canvas.width / 2, canvas.height / 2);
         ctx.font = '24px Arial';
         ctx.fillText(`Final Score: ${score}`, canvas.width / 2, canvas.height / 2 + 40);
-        return; // Stop the game loop
+        resetButton.style.display = 'block';
+        return;
     }
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -222,4 +226,4 @@ function gameLoop() {
     requestAnimationFrame(gameLoop);
 }
 
-gameLoop();
+resetGame();
