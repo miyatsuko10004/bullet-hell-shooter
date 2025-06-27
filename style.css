@@ -8,9 +8,20 @@ body {
 canvas {
     background-color: #111;
     border: 2px solid #fff;
+    display: none; /* Initially hidden */
 }
 
-#resetButton {
+#startScreen {
+    padding: 20px;
+    border: 2px solid #fff;
+    display: inline-block;
+}
+
+#difficultySelection label {
+    margin: 0 10px;
+}
+
+#startButton, #resetButton {
     display: block;
     margin: 20px auto;
     padding: 10px 20px;

@@ -8,8 +8,20 @@
 </head>
 <body>
     <h1>弾幕シューティング</h1>
-    <canvas id="gameCanvas" width="800" height="600"></canvas>
+
+    <div id="startScreen">
+        <h2>難易度を選択してください</h2>
+        <div id="difficultySelection">
+            <label><input type="radio" name="difficulty" value="easy" checked> 易しい</label>
+            <label><input type="radio" name="difficulty" value="normal"> 普通</label>
+            <label><input type="radio" name="difficulty" value="hard"> 難しい</label>
+        </div>
+        <button id="startButton">ゲーム開始</button>
+    </div>
+
+    <canvas id="gameCanvas" width="800" height="600" style="display: none;"></canvas>
     <button id="resetButton" style="display: none;">もう一度プレイ</button>
+
     <script src="script.js"></script>
 </body>
 </html>
